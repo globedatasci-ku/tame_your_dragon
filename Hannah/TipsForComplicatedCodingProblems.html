@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>tips to tame youR dRagon</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="@HannahOish" />
+    <meta name="date" content="2021-06-14" />
+    <script src="libs/header-attrs-2.7/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="custom-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# tips to tame youR dRagon
+## Hannah L. Owens
+### <span class="citation">@HannahOish</span>
+### 2021-06-14
+
+---
+
+
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 4em 1em 4em;
+}
+&lt;/style&gt;
+
+
+# Does your code have you tangled up in knots?
+
+&lt;div align="center"&gt;
+&lt;img src="https://ehillus.files.wordpress.com/2014/10/tangled-dragon.jpg" height=400&gt;
+&lt;/div&gt;
+
+---
+
+# Tip 1: Take a deep breath.
+
+.pull-left[
+* When you have a problem with a complicated piece of code, take a minute to focus and clear your mind.
+]
+
+.pull-right[
+&lt;img src="https://techsupport.foreverwarm.com/wp-content/uploads/2011/03/frustrated-computer-guy.png" width=300&gt;
+]
+
+---
+
+# Tip 2: Start with a clean slate.
+
+.pull-left[
+* Open a new script document.
+* Clear you environment.
+
+```r
+rm(list=ls())
+```
+]
+
+.pull-right[
+&lt;img src="https://www.bigimmigrationlawblog.com/wp-content/uploads/sites/365/2020/11/iStock-1023471968-330x248.jpg" width=300&gt;
+]
+
+---
+
+# Tip 3: Be patient
+
+.pull-left[
+* Go through the code *one* line at a time.
+* Highlight, then hit "Control" + "Enter" or "Command" + "Return"
+]
+
+.pull-right[
+&lt;img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Enter-key.jpg" width=300&gt;
+]
+
+---
+
+
+# Tip 4: Keep your lines short
+
+.pull-left[
+* No one has ever won an award for shortest R code (that I know of)
+* Make a series of simple statements.
+]
+
+.pull-right[
+
+```r
+# Good
+a &lt;- "one"
+b &lt;- "two"
+d &lt;- "three"
+test &lt;- c(a,b,d)
+print(test)
+
+#Bad
+print(paste(c(a="one", b="two", d="three")))
+```
+]
+
+---
+
+# Tip 5: Comment early, Comment often
+
+.pull-left[
+* Use them for metadata
+* Explain code chunks
+* Keep them brief
+* Keep them relevant
+* Keep it constructive
+* Can be used to debug
+* OK, maybe don't use them ALLLL the time
+]
+
+.pull-right[
+&lt;img src="https://img.devrant.com/devrant/rant/c_662893_Sw1f4.jpg"  height=400&gt;
+]
+
+---
+
+# Tip 6: Use print() to show exactly what is happening and when
+.pull-left[
+
+```r
+testFunction &lt;- function(y){
+  if (y %% 2==0){
+    return("notOdd")
+  } else return()
+}
+
+x &lt;- c()
+for(i in 1:3){
+  print(i)
+  print("executing function")
+  newI &lt;- testFunction(i)
+  print(paste("newI: ", newI))
+  print("appending new i")
+  x &lt;- c(x,newI)
+  print(x)
+}
+```
+]
+
+.pull-right[
+
+```
+## [1] 1
+## [1] "executing function"
+## [1] "newI:  "
+## [1] "appending new i"
+## NULL
+## [1] 2
+## [1] "executing function"
+## [1] "newI:  notOdd"
+## [1] "appending new i"
+## [1] "notOdd"
+## [1] 3
+## [1] "executing function"
+## [1] "newI:  "
+## [1] "appending new i"
+## [1] "notOdd"
+```
+]
+
+---
+
+# Tip 7: Use unique indexes for every loop
+.pull-left[
+* Do not use `i` as a universal index
+* If you don't change the index for every loop, you could accidentally recycle something
+* Also it will turn nested loops into a hot mess in no time flat.
+]
+
+.pull-right[
+&lt;img src="https://live.staticflickr.com/7229/7162673224_d417dce68a_z.jpg"  height=400&gt;
+]
+
+---
+
+# Tip 8: Break out of the loop!
+.pull-left[
+* Turn your loops into functions
+* Functions are easier to debug
+* Functions are faster
+]
+
+.pull-right[
+&lt;img src="https://freshstitches.com/wp-content/uploads/2012/11/cut-loop-stitch-1024x768.jpg"  height=400&gt;
+]
+
+---
+
+# Tip 9: If you *have* to loop, make sure your code works first
+.pull-left[
+* Go through it line by line
+* Be patient
+]
+
+.pull-right[
+&lt;img src="https://i.insider.com/5b76eda93cccd123008b45d1?width=1000&amp;format=jpeg&amp;auto=webp"  height=400&gt;
+]
+---
+
+# Tip 10: Simplify your piping operations
+.pull-left[
+* Start with basic steps
+* Run lines line by line
+]
+
+.pull-right[
+
+```r
+library(magrittr)
+a &lt;- seq(1,10, by = 2)
+
+# Good
+a %&gt;% log() %&gt;%
+    diff() %&gt;%
+    exp() %&gt;%
+    round(1)
+
+# Bad
+a %&gt;% log() %&gt;% diff() %&gt;% exp() %&gt;% round(1)
+```
+]
+---
+# Tip 11: Try
+.pull-left[
+* You may have to loop over messy data
+* try() allows the loop to keep going instead of stalling
+* Skips over problem and produces error message
+]
+
+.pull-right[
+
+```r
+inputs &lt;-  list(1, 2, 4, -5, 'oops', 0, 10)
+
+# With try
+for(input in inputs) {
+  try(print(paste("log of", input, "=", log(input))))
+}
+```
+
+```
+## [1] "log of 1 = 0"
+## [1] "log of 2 = 0.693147180559945"
+## [1] "log of 4 = 1.38629436111989"
+```
+
+```
+## Warning in log(input): NaNs produced
+```
+
+```
+## [1] "log of -5 = NaN"
+## Error in log(input) : non-numeric argument to mathematical function
+## [1] "log of 0 = -Inf"
+## [1] "log of 10 = 2.30258509299405"
+```
+]
+---
+
+# Tip 12: tryCatch
+.pull-left[
+* "Fancy" version of try
+* You can produce custom errors and warnings that are more informative
+* Wrap in a function for maximum effect
+]
+.pull-right[
+
+```r
+robustLog = function(x) {
+  tryCatch(log(x),
+           warning = function(w) {print(paste("negative argument", x))
+                                    log(-x)},
+           error = function(e) {print(paste("non-numeric argument", x))
+                                  NaN}) 
+}
+
+for(input in inputs) {
+   print(paste("robust log of", input, "=", robustLog(input)))
+}
+```
+
+```
+## [1] "robust log of 1 = 0"
+## [1] "robust log of 2 = 0.693147180559945"
+## [1] "robust log of 4 = 1.38629436111989"
+## [1] "negative argument -5"
+## [1] "robust log of -5 = 1.6094379124341"
+## [1] "non-numeric argument oops"
+## [1] "robust log of oops = NaN"
+## [1] "robust log of 0 = -Inf"
+## [1] "robust log of 10 = 2.30258509299405"
+```
+]
+---
+.left-column[
+# Fin.
+]
+
+.right-column[
+&lt;img src="https://pyxis.nymag.com/v1/imgs/76a/792/ca8c6ae202df791dcd06c700e9650882f9-19-how-to-train-dragon.rhorizontal.w700.jpg"&gt;
+]
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="https://platform.twitter.com/widgets.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
