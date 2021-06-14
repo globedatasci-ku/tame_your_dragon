@@ -1,0 +1,243 @@
+---
+title: "Implementing code from the web"
+subtitle: "Maria Novosolov"
+date: "`r format(Sys.Date(),'%d-%m-%Y')`"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "custom-fonts.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: '16:9'
+      beforeInit: "https://platform.twitter.com/widgets.js"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+class: middle 
+
+As R users we spend a lot of time on the web to find the code and functions we need to run our analyses. In some cases it's hard to figure out how to translate the code that is written in StackOverflow to our needs. Here I will give some tips and examples on where to start and what is the process.
+
+---
+class: middle 
+
+# Tip 1 
+
+Find the internet post that seems at least semi understandable. This will help you gain some confidence. Trying to adapt code that you yourself don't understand will just discourage you from working in R. If you understand 30% of the function in the post you can understand the other 70%
+
+---
+class: middle 
+
+# Tip 2
+
+Use R built-in or some generic well curated data to test the code that is suggested before you try it on your data. Once you figure out what the code is doing and how you can use it with your data start adapting it.
+
+For example: I have a vcf genomic file and I want to use it to plot a PCA. I found this blog post
+https://www.biostars.org/p/44735/
+
+I skimmed over it and figured that the first response is the easiest one to implement. I copy paste it to my script and start going over it. 
+
+---
+First I start commenting on the code that I see
+
+```{r eval=FALSE, include=TRUE}
+setwd("/xxx/pca")
+library("SNPRelate")
+vcf.fn<-"~/xxx/tmp.vcf"
+snpgdsVCF2GDS(vcf.fn, "ccm.gds",  method="biallelic.only")
+genofile <- openfn.gds("ccm.gds")
+ccm_pca<-snpgdsPCA(genofile)
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+```
+
+---
+
+Same code with comments 
+
+```{r eval=FALSE, include=TRUE}
+#set working directory
+setwd("/xxx/pca")
+
+#read the library SNPRelate
+library("SNPRelate")
+
+#save the vcf path as a string
+vcf.fn<-"~/xxx/tmp.vcf"
+
+#convert the cf to a gds file
+snpgdsVCF2GDS(vcf.fn, "ccm.gds",  method="biallelic.only")
+
+#open the gds file
+genofile <- openfn.gds("ccm.gds")
+#create the pcs matrix
+ccm_pca<-snpgdsPCA(genofile)
+#plot the output
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+
+```
+
+---
+Now we start to adapt the code to our needs. We'll start with running the code on a vcf file from the package. We know it will work. The vcf file in the `SNPRelate` package is called `sequence.vcf`
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+#set working directory - I don't need it because we're working from a project 
+#(Ask me to talk about it if it's not clear what is a project 
+#or why you should always work from it)
+setwd("/xxx/pca")
+#I make sure I have the library installed first
+BiocManager::install("SNPRelate")
+```
+---
+```{r}
+#read the library SNPRelate
+library("SNPRelate")
+#save the vcf path as a string
+vcf.fn<-system.file("extdata", "sequence.vcf", package="SNPRelate")
+```
+---
+```{r}
+
+#convert the cf to a gds file
+snpgdsVCF2GDS(vcf.fn, here::here("Maria/data/ccm.gds"),  method="biallelic.only")
+
+#open the gds file
+genofile <- openfn.gds(here::here("Maria/data/ccm.gds"))
+```
+---
+```{r}
+#create the pcs matrix
+ccm_pca<-snpgdsPCA(genofile)
+```
+---
+```{r}
+#plot the output
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+```
+
+---
+
+Now I try it on a small data that has several groups.
+
+```{r message=FALSE, warning=FALSE}
+vcf.fn<-"Maria/data/sparrow_chr8_downsample.vcf"
+snpgdsVCF2GDS(here::here(vcf.fn), here::here("Maria/data/ccm_sparrow.gds"),  method="biallelic.only")
+genofile <- openfn.gds(here::here("Maria/data/ccm_sparrow.gds"))
+```
+---
+```{r}
+ccm_pca<-snpgdsPCA(genofile)
+```
+---
+```{r}
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+
+```
+
+---
+
+Now we want to use ggplot instead of base plot because it will give us more options. We will also load the population text to be able to use that 
+
+```{r message=FALSE, warning=FALSE}
+#read the pop data
+pop.data<- read_delim(here::here("Maria/data/sparrow_pops.txt"),delim = "\t")
+pop.data
+```
+---
+```{r}
+#convert the pca results into a data frame
+pca.scores <- as.data.frame(ccm_pca$eigenvect)
+#add the pop data
+pca.scores$pop<- pop.data$pop
+pca.scores$ind<- pop.data$ind
+#plot the pca
+pca.plot<- ggplot(pca.scores, aes(x=V1, y=V2, colour=pop,label=ind)) +
+  geom_point(size=2)+
+  stat_ellipse(level = 0.95, size = 1)+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  labs(x = "PC1", y = "PC2")+
+  theme_bw()
+```
+
+---
+```{r fig.width=12}
+pca.plot
+```
+
+---
+class: middle
+
+Eventually I wanted it to run on my large data so I adapted it to work on the cluster. The final script was made out of two sections - one that I run on the cluster and save the RDS file, and the second that I run locally to plot the pca
+
+---
+## Part1 - run on the cluster
+```{r eval=FALSE, include=TRUE}
+#otherwise you can install it locally on your home directory on the cluster using 
+BiocManager::install("SNPRelate",lib = "path/to/you/directory")
+#load the library (if you have the package installed)
+library("SNPRelate")
+#create an object with the name of the vcf file
+vcf.fn<-"~/sharedhome/all_vcf_merged_PS.vcf.gz"
+#convert it to a gds file with only biallelic sites
+snpgdsVCF2GDS(vcf.fn, "~/sharedhome/PS_vcf.gds",  method="biallelic.only")
+#read it into R
+genofile <- openfn.gds("PS_vcf.gds")
+#run the PCA
+ccm_pca<-snpgdsPCA(genofile)
+#save the object
+saveRDS(ccm_pca,file = "PS_pca_SNPRelate.rds")
+```
+---
+
+## Part2 - run locally to plot
+
+```{r eval=FALSE, include=TRUE}
+# Read the RDS that you saved
+PS.pca<- readRDS("rds/PS_pca_SNPRelate.rds")
+###### Preper the data for the PC plot #####
+# create a data frame from the PCA scores
+# convert the eigenvalues into a dataframe
+PS.pca.scores <- as.data.frame(PS.pca$eigenvect)
+#add a population column - here I took it from the gl file I created before, but you can just take it from oyur idividual-population dataset you have. Number of eigenvalues is equal to the number of individuals you had in your vcf and the order is the same as in the vcf
+PS.pca.scores$pop <- pop(gl.PS)
+##### plot the PCA ######
+#plot the first 2 PC's. Change the labs to represent the values for your PC axis
+pc1<- ggplot(PS.pca.scores, aes(x=V1, y=V2, colour=pop,label = ind)) +
+  geom_point(size=2)+
+  stat_ellipse(level = 0.95, size = 1)+
+  scale_color_manual(values = cols.ps) +
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  labs(x = "PC1 (12.6%)", y = "PC2 (9.8%)")+
+  theme_bw()
+pc1
+
+```
+
+
+---
+
+# Summary and some general tips
+
+* If the code you found is readable to you in at least 30% you can figure out the rest.
+
+* Start with an easy to use example that will help you understand what the code does. 
+
+* Make sure you understand each step in the code you're trying to implement before you continue to adapting it to your data
+
+* If a function in the code you're trying to adapt doesn't work try and figure out which function/s you can use that will do the same thing
+
+* Once you managed to implement the code to your needs add the link to where you found it to your script so that you always know what was the starting point
+
+---
+class: center, middle
+
+# Good Luck!
+
+
+
+

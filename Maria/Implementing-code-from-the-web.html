@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Implementing code from the web</title>
+    <meta charset="utf-8" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="custom-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Implementing code from the web
+## Maria Novosolov
+### 13-06-2021
+
+---
+
+
+
+
+class: middle 
+
+As R users we spend a lot of time on the web to find the code and functions we need to run our analyses. In some cases it's hard to figure out how to translate the code that is written in StackOverflow to our needs. Here I will give some tips and examples on where to start and what is the process.
+
+---
+class: middle 
+
+# Tip 1 
+
+Find the internet post that seems at least semi understandable. This will help you gain some confidence. Trying to adapt code that you yourself don't understand will just discourage you from working in R. If you understand 30% of the function in the post you can understand the other 70%
+
+---
+class: middle 
+
+# Tip 2
+
+Use R built-in or some generic well curated data to test the code that is suggested before you try it on your data. Once you figure out what the code is doing and how you can use it with your data start adapting it.
+
+For example: I have a vcf genomic file and I want to use it to plot a PCA. I found this blog post
+https://www.biostars.org/p/44735/
+
+I skimmed over it and figured that the first response is the easiest one to implement. I copy paste it to my script and start going over it. 
+
+---
+First I start commenting on the code that I see
+
+
+```r
+setwd("/xxx/pca")
+library("SNPRelate")
+vcf.fn&lt;-"~/xxx/tmp.vcf"
+snpgdsVCF2GDS(vcf.fn, "ccm.gds",  method="biallelic.only")
+genofile &lt;- openfn.gds("ccm.gds")
+ccm_pca&lt;-snpgdsPCA(genofile)
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+```
+
+---
+
+Same code with comments 
+
+
+```r
+#set working directory
+setwd("/xxx/pca")
+
+#read the library SNPRelate
+library("SNPRelate")
+
+#save the vcf path as a string
+vcf.fn&lt;-"~/xxx/tmp.vcf"
+
+#convert the cf to a gds file
+snpgdsVCF2GDS(vcf.fn, "ccm.gds",  method="biallelic.only")
+
+#open the gds file
+genofile &lt;- openfn.gds("ccm.gds")
+#create the pcs matrix
+ccm_pca&lt;-snpgdsPCA(genofile)
+#plot the output
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+```
+
+---
+Now we start to adapt the code to our needs. We'll start with running the code on a vcf file from the package. We know it will work. The vcf file in the `SNPRelate` package is called `sequence.vcf`
+
+
+```r
+#set working directory - I don't need it because we're working from a project 
+#(Ask me to talk about it if it's not clear what is a project 
+#or why you should always work from it)
+setwd("/xxx/pca")
+#I make sure I have the library installed first
+BiocManager::install("SNPRelate")
+```
+---
+
+```r
+#read the library SNPRelate
+library("SNPRelate")
+```
+
+```
+## Loading required package: gdsfmt
+```
+
+```
+## SNPRelate -- supported by Streaming SIMD Extensions 2 (SSE2)
+```
+
+```r
+#save the vcf path as a string
+vcf.fn&lt;-system.file("extdata", "sequence.vcf", package="SNPRelate")
+```
+---
+
+```r
+#convert the cf to a gds file
+snpgdsVCF2GDS(vcf.fn, here::here("Maria/data/ccm.gds"),  method="biallelic.only")
+```
+
+```
+## Start file conversion from VCF to SNP GDS ...
+## Method: exacting biallelic SNPs
+## Number of samples: 3
+## Parsing "/Library/Frameworks/R.framework/Versions/4.0/Resources/library/SNPRelate/extdata/sequence.vcf" ...
+## 	import 2 variants.
+## + genotype   { Bit2 3x2, 2B } *
+## Optimize the access efficiency ...
+## Clean up the fragments of GDS file:
+##     open the file '/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/ccm.gds' (2.9K)
+##     # of fragments: 46
+##     save to '/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/ccm.gds.tmp'
+##     rename '/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/ccm.gds.tmp' (2.6K, reduced: 312B)
+##     # of fragments: 20
+```
+
+```r
+#open the gds file
+genofile &lt;- openfn.gds(here::here("Maria/data/ccm.gds"))
+```
+---
+
+```r
+#create the pcs matrix
+ccm_pca&lt;-snpgdsPCA(genofile)
+```
+
+```
+## Hint: it is suggested to call `snpgdsOpen' to open a SNP GDS file instead of `openfn.gds'.
+```
+
+```
+## Principal Component Analysis (PCA) on genotypes:
+## Excluding 0 SNP on non-autosomes
+## Excluding 0 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+##     # of samples: 3
+##     # of SNPs: 2
+##     using 1 thread
+##     # of principal components: 32
+## PCA:    the sum of all selected genotypes (0,1,2) = 8
+## CPU capabilities: Double-Precision SSE2
+## Sun Jun 13 23:13:52 2021    (internal increment: 686760)
+## 
+[..................................................]  0%, ETC: ---        
+[==================================================] 100%, completed, 0s
+## Sun Jun 13 23:13:52 2021    Begin (eigenvalues and eigenvectors)
+## Sun Jun 13 23:13:52 2021    Done.
+```
+---
+
+```r
+#plot the output
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+```
+
+![](Implementing-code-from-the-web_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+
+---
+
+Now I try it on a small data that has several groups.
+
+
+```r
+vcf.fn&lt;-"Maria/data/sparrow_chr8_downsample.vcf"
+snpgdsVCF2GDS(here::here(vcf.fn), here::here("Maria/data/ccm_sparrow.gds"),  method="biallelic.only")
+```
+
+```
+## Start file conversion from VCF to SNP GDS ...
+## Method: exacting biallelic SNPs
+## Number of samples: 130
+## Parsing "/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/sparrow_chr8_downsample.vcf" ...
+## 	import 90635 variants.
+## + genotype   { Bit2 130x90635, 2.8M } *
+## Optimize the access efficiency ...
+## Clean up the fragments of GDS file:
+##     open the file '/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/ccm_sparrow.gds' (3.3M)
+##     # of fragments: 54
+##     save to '/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/ccm_sparrow.gds.tmp'
+##     rename '/Users/rlw363/Dropbox/Studies/globedatasci/tame_your_dragon/Maria/data/ccm_sparrow.gds.tmp' (3.3M, reduced: 408B)
+##     # of fragments: 20
+```
+
+```r
+genofile &lt;- openfn.gds(here::here("Maria/data/ccm_sparrow.gds"))
+```
+---
+
+```r
+ccm_pca&lt;-snpgdsPCA(genofile)
+```
+
+```
+## Hint: it is suggested to call `snpgdsOpen' to open a SNP GDS file instead of `openfn.gds'.
+```
+
+```
+## Principal Component Analysis (PCA) on genotypes:
+## Excluding 0 SNP on non-autosomes
+## Excluding 0 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+##     # of samples: 130
+##     # of SNPs: 90,635
+##     using 1 thread
+##     # of principal components: 32
+## PCA:    the sum of all selected genotypes (0,1,2) = 13543209
+## CPU capabilities: Double-Precision SSE2
+## Sun Jun 13 23:13:57 2021    (internal increment: 15848)
+## 
+[..................................................]  0%, ETC: ---        
+[==================================================] 100%, completed, 1s
+## Sun Jun 13 23:13:58 2021    Begin (eigenvalues and eigenvectors)
+## Sun Jun 13 23:13:58 2021    Done.
+```
+---
+
+```r
+plot(ccm_pca$eigenvect[,1],ccm_pca$eigenvect[,2] ,col=as.numeric(substr(ccm_pca$sample, 1,3) == 'CCM')+3, pch=2)
+```
+
+![](Implementing-code-from-the-web_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+---
+
+Now we want to use ggplot instead of base plot because it will give us more options. We will also load the population text to be able to use that 
+
+
+```r
+#read the pop data
+pop.data&lt;- read_delim(here::here("Maria/data/sparrow_pops.txt"),delim = "\t")
+pop.data
+```
+
+```
+## # A tibble: 130 x 2
+##    ind     pop    
+##    &lt;chr&gt;   &lt;chr&gt;  
+##  1 5PMCos  House  
+##  2 180bp   House  
+##  3 430     Italian
+##  4 8934547 House  
+##  5 8L19766 House  
+##  6 8L19786 House  
+##  7 8L52141 House  
+##  8 8L52830 House  
+##  9 8L64869 House  
+## 10 8L89915 House  
+## # … with 120 more rows
+```
+---
+
+```r
+#convert the pca results into a data frame
+pca.scores &lt;- as.data.frame(ccm_pca$eigenvect)
+#add the pop data
+pca.scores$pop&lt;- pop.data$pop
+pca.scores$ind&lt;- pop.data$ind
+#plot the pca
+pca.plot&lt;- ggplot(pca.scores, aes(x=V1, y=V2, colour=pop,label=ind)) +
+  geom_point(size=2)+
+  stat_ellipse(level = 0.95, size = 1)+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  labs(x = "PC1", y = "PC2")+
+  theme_bw()
+```
+
+---
+
+```r
+pca.plot
+```
+
+![](Implementing-code-from-the-web_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;
+
+---
+class: middle
+
+Eventually I wanted it to run on my large data so I adapted it to work on the cluster. The final script was made out of two sections - one that I run on the cluster and save the RDS file, and the second that I run locally to plot the pca
+
+---
+## Part1 - run on the cluster
+
+```r
+#otherwise you can install it locally on your home directory on the cluster using 
+BiocManager::install("SNPRelate",lib = "path/to/you/directory")
+#load the library (if you have the package installed)
+library("SNPRelate")
+#create an object with the name of the vcf file
+vcf.fn&lt;-"~/sharedhome/all_vcf_merged_PS.vcf.gz"
+#convert it to a gds file with only biallelic sites
+snpgdsVCF2GDS(vcf.fn, "~/sharedhome/PS_vcf.gds",  method="biallelic.only")
+#read it into R
+genofile &lt;- openfn.gds("PS_vcf.gds")
+#run the PCA
+ccm_pca&lt;-snpgdsPCA(genofile)
+#save the object
+saveRDS(ccm_pca,file = "PS_pca_SNPRelate.rds")
+```
+---
+
+## Part2 - run locally to plot
+
+
+```r
+# Read the RDS that you saved
+PS.pca&lt;- readRDS("rds/PS_pca_SNPRelate.rds")
+###### Preper the data for the PC plot #####
+# create a data frame from the PCA scores
+# convert the eigenvalues into a dataframe
+PS.pca.scores &lt;- as.data.frame(PS.pca$eigenvect)
+#add a population column - here I took it from the gl file I created before, but you can just take it from oyur idividual-population dataset you have. Number of eigenvalues is equal to the number of individuals you had in your vcf and the order is the same as in the vcf
+PS.pca.scores$pop &lt;- pop(gl.PS)
+##### plot the PCA ######
+#plot the first 2 PC's. Change the labs to represent the values for your PC axis
+pc1&lt;- ggplot(PS.pca.scores, aes(x=V1, y=V2, colour=pop,label = ind)) +
+  geom_point(size=2)+
+  stat_ellipse(level = 0.95, size = 1)+
+  scale_color_manual(values = cols.ps) +
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  labs(x = "PC1 (12.6%)", y = "PC2 (9.8%)")+
+  theme_bw()
+pc1
+```
+
+
+---
+
+# Summary and some general tips
+
+* If the code you found is readable to you in at least 30% you can figure out the rest.
+
+* Start with an easy to use example that will help you understand what the code does. 
+
+* Make sure you understand each step in the code you're trying to implement before you continue to adapting it to your data
+
+* If a function in the code you're trying to adapt doesn't work try and figure out which function/s you can use that will do the same thing
+
+* Once you managed to implement the code to your needs add the link to where you found it to your script so that you always know what was the starting point
+
+---
+class: center, middle
+
+# Good Luck!
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="https://platform.twitter.com/widgets.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
